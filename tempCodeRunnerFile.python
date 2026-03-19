@@ -1,0 +1,49 @@
+import sys
+sys.setrecursionlimit(200000)
+
+MAX = 100000 + 5
+adj = [[] for _ in range(MAX)]
+chocolates = [0] * MAX
+best_answer = 0
+
+def dfs(node, parent):
+    global best_answer
+    child_paths = []
+
+    for neighbor in adj[node]:
+        if neighbor == parent:
+            continue
+        child_sum = dfs(neighbor, node)
+        child_paths.append(child_sum)
+
+    if not child_paths:
+        best_answer = max(best_answer, chocolates[node])
+        return chocolates[node]
+
+    # Sort in descending order
+    child_paths.sort(reverse=True)
+
+    best_downward = chocolates[node] + child_paths[0]
+    through_node = chocolates[node]
+
+    if len(child_paths) >= 2:
+        through_node += child_paths[0] + child_paths[1]
+
+    best_answer = max(best_answer, best_downward, through_node)
+
+    return best_downward
+
+# ---------- Main ----------
+if __name__ == "__main__":
+    n = int(sys.stdin.readline().strip())
+    data = list(map(int, sys.stdin.readline().split()))
+    for i in range(1, n + 1):
+        chocolates[i] = data[i - 1]
+
+    for _ in range(n - 1):
+        u, v = map(int, sys.stdin.readline().split())
+        adj[u].append(v)
+        adj[v].append(u)
+
+    dfs(1, -1)
+    print(best_answer)
