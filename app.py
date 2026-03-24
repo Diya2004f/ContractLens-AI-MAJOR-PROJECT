@@ -81,6 +81,27 @@ CLAUSE_KEYWORDS = {
     "Governing Law / Venue": ["jurisdiction", "governing law", "venue", "court", "courts"],
     "Assignment": ["assign", "assignment", "transfer", "delegate"],
 }
+EXPLANATIONS = {
+    "Payment Terms": "This clause defines how and when payments must be made, including penalties or conditions for delays.",
+    
+    "Parties": "This clause identifies who is involved in the agreement and their roles.",
+    
+    "Term / Duration": "This clause explains how long the agreement will last and when it starts and ends.",
+    
+    "Termination": "This clause explains how and under what conditions the agreement can be ended early.",
+    
+    "Liability / Indemnity": "This clause defines who is responsible if something goes wrong, including damages or legal claims.",
+    
+    "Governing Law / Venue": "This clause specifies which laws apply and where disputes will be handled.",
+    
+    "Assignment": "This clause explains whether the agreement can be transferred to another party."
+}
+
+def explain_clause(snippet: str, clause: str) -> str:
+    return EXPLANATIONS.get(
+        clause,
+        "This clause defines important rights and obligations in the agreement."
+    )
 
 #RISK 
 RISK_RULES = {
@@ -186,10 +207,12 @@ def best_clause_snippets(doc: str):
             confidence = min(100, len(scored) * 10)
             risk = calculate_risk(simplified, clause)
 
+            explanation = explain_clause(simplified, clause)
             results[clause] = {
                 "confidence": confidence,
                 "snippet": simplified,
-                "risk": risk
+                "risk": risk,
+                "explanation": explanation
             }
     return results
 
@@ -197,7 +220,7 @@ detected_clauses = best_clause_snippets(text)
 
 st.markdown("## 📌 Summary")
 
-c1, c2, c3, c4 = st.columns([1, 1, 1, 1])
+c1, c2, c3 = st.columns([1, 1, 1])
 
 with c1:
     if st.button("Plain English", use_container_width=True):
@@ -210,10 +233,6 @@ with c2:
 with c3:
     if st.button("Rephrase", use_container_width=True):
         rephrase("clear and concise style")
-
-with c4:
-    if st.button("Re-Summarize", use_container_width=True):
-        st.session_state.summary_output = make_summary(text)
 
 left, right = st.columns([2.2, 1.1], gap="large")
 
@@ -249,6 +268,11 @@ with right:
                         <br><br>
                         <b style="color:{risk_color}">Risk Level: {risk}</b><br>
                         <b>Confidence:</b> {conf}%
+                    </div>
+
+                    <div class="snippet-box importance-box" style="margin-top:10px;">
+                        <strong>💡 Why this clause matters:</strong><br><br>
+                        {data["explanation"]}
                     </div>
                     """,
                     unsafe_allow_html=True
